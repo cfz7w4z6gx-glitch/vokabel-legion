@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOKABEL-LEGION · Latein Cursus</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Baloo+2:wght@500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#241233;
+    --ink2:#341a48;
+    --parchment:#f3e4c4;
+    --parchment2:#e9d5a8;
+    --gold:#c9a227;
+    --gold-light:#e6c358;
+    --brick:#8c3b32;
+    --brick-light:#a8534a;
+    --patina:#4f7c6c;
+    --patina-light:#6ba18d;
+    --text-dark:#2b1810;
+    --shadow:rgba(20,8,30,0.45);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'Baloo 2',sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, #3a1f52 0%, transparent 45%),
+      radial-gradient(circle at 85% 90%, #3a1f52 0%, transparent 45%),
+      var(--ink);
+    color:var(--parchment);
+    min-height:100vh;
+    padding:18px 14px 60px;
+  }
+  .wrap{max-width:820px;margin:0 auto;}
+  header{text-align:center;margin-bottom:18px;}
+  h1{
+    font-family:'Cinzel',serif;
+    font-weight:900;
+    letter-spacing:0.12em;
+    font-size:clamp(1.6rem,5vw,2.4rem);
+    margin:0 0 4px;
+    color:var(--gold-light);
+    text-shadow:0 2px 0 var(--shadow);
+  }
+  .subtitle{
+    font-size:0.85rem;
+    letter-spacing:0.08em;
+    color:var(--parchment2);
+    opacity:0.85;
+    font-family:'JetBrains Mono',monospace;
+    text-transform:uppercase;
+  }
+
+  /* --- Römerstraße / Fortschrittspfad --- */
+  .road-outer{
+    background:linear-gradient(180deg,#2e1740,#221130);
+    border-radius:16px;
+    padding:14px 10px 18px;
+    margin-bottom:14px;
+    box-shadow:inset 0 0 0 1px rgba(201,162,39,0.25), 0 6px 14px var(--shadow);
+    overflow-x:auto;
+  }
+  .road{
+    display:flex;
+    align-items:flex-end;
+    gap:6px;
+    min-width:max-content;
+    padding:6px 10px;
+    position:relative;
+  }
+  .road::before{
+    content:"";
+    position:absolute;
+    left:20px;right:20px;
+    top:36px;
+    height:4px;
+    background:repeating-linear-gradient(90deg,var(--parchment2) 0 10px, transparent 10px 18px);
+    opacity:0.5;
+    z-index:0;
+  }
+  .milestone{
+    position:relative;
+    z-index:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    cursor:pointer;
+    background:none;
+    border:none;
+    color:inherit;
+    font-family:inherit;
+    padding:0 2px;
+    min-width:46px;
+  }
+  .milestone .stone{
+    width:36px;height:44px;
+    border-radius:14px 14px 6px 6px;
+    background:linear-gradient(180deg,var(--parchment2),var(--parchment));
+    border:2px solid #7a6636;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Cinzel',serif;font-weight:700;
+    color:var(--text-dark);
+    font-size:0.85rem;
+    box-shadow:0 3px 0 rgba(0,0,0,0.3);
+    transition:transform .15s ease;
+  }
+  .milestone.done .stone{background:linear-gradient(180deg,var(--gold-light),var(--gold));border-color:#8a6a10;}
+  .milestone.active .stone{transform:translateY(-4px) scale(1.08);box-shadow:0 0 0 3px var(--patina-light), 0 5px 0 rgba(0,0,0,0.35);}
+  .milestone .lbl{font-size:0.62rem;margin-top:4px;opacity:0.75;font-family:'JetBrains Mono',monospace;white-space:nowrap;}
+
+  /* --- Statusleiste --- */
+  .statbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+    background:var(--ink2);
+    border-radius:14px;
+    padding:12px 16px;
+    margin-bottom:16px;
+    box-shadow:inset 0 0 0 1px rgba(201,162,39,0.2);
+  }
+  .rank-block{display:flex;align-items:center;gap:10px;}
+  .rank-badge{
+    font-size:1.7rem;
+    filter:drop-shadow(0 2px 2px rgba(0,0,0,.4));
+  }
+  .rank-name{font-family:'Cinzel',serif;font-weight:700;color:var(--gold-light);font-size:1rem;letter-spacing:0.04em;}
+  .rank-sub{font-size:0.72rem;color:var(--parchment2);opacity:0.8;}
+  .xp-track{
+    flex:1 1 160px;
+    min-width:120px;
+    height:10px;
+    background:#160a20;
+    border-radius:6px;
+    overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(201,162,39,0.3);
+  }
+  .xp-fill{height:100%;background:linear-gradient(90deg,var(--patina),var(--patina-light));transition:width .5s ease;}
+  .coin-streak{display:flex;gap:14px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:0.95rem;}
+  .coin-streak span{display:flex;align-items:center;gap:4px;}
+
+  /* --- Steuerung --- */
+  .controls{
+    display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;align-items:center;
+  }
+  select{
+    background:var(--parchment);
+    color:var(--text-dark);
+    border:2px solid #7a6636;
+    border-radius:10px;
+    padding:8px 10px;
+    font-family:'Baloo 2',sans-serif;
+    font-weight:600;
+    font-size:0.9rem;
+  }
+  .mode-tabs{display:flex;gap:6px;flex-wrap:wrap;flex:1;}
+  .mode-tab{
+    background:var(--ink2);
+    color:var(--parchment2);
+    border:2px solid transparent;
+    border-radius:10px;
+    padding:8px 12px;
+    font-family:'Baloo 2',sans-serif;
+    font-weight:700;
+    font-size:0.85rem;
+    cursor:pointer;
+    transition:all .15s ease;
+  }
+  .mode-tab.active{background:var(--brick);color:#fff;border-color:var(--brick-light);}
+  .ghost-btn{
+    background:transparent;
+    border:2px solid var(--patina);
+    color:var(--patina-light);
+    border-radius:10px;
+    padding:8px 12px;
+    font-weight:700;
+    font-family:'Baloo 2',sans-serif;
+    cursor:pointer;
+    font-size:0.85rem;
+  }
+  .ghost-btn:hover{background:rgba(79,124,108,0.2);}
+
+  /* --- Spielbereich (Parchment card) --- */
+  main{
+    background:radial-gradient(circle at 20% 15%, rgba(255,255,255,0.15), transparent 55%), var(--parchment);
+    color:var(--text-dark);
+    border-radius:18px;
+    padding:24px 20px 28px;
+    min-height:340px;
+    box-shadow:0 10px 24px var(--shadow), inset 0 0 0 1px rgba(122,102,54,0.4);
+    position:relative;
+  }
+  .empty-state{text-align:center;padding:40px 10px;}
+  .empty-state h2{font-family:'Cinzel',serif;}
+  .progress-row{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:0.8rem;opacity:0.65;margin-bottom:14px;}
+
+  /* Flashcards */
+  .flash-stage{display:flex;flex-direction:column;align-items:center;gap:18px;}
+  .flashcard{
+    width:100%;max-width:420px;min-height:190px;
+    background:linear-gradient(180deg,#fff8e6,var(--parchment));
+    border:3px solid #7a6636;
+    border-radius:16px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;padding:20px;
+    cursor:pointer;
+    perspective:800px;
+  }
+  .flashcard .la{font-family:'Cinzel',serif;font-size:1.7rem;font-weight:700;}
+  .flashcard .de{font-size:1.1rem;margin-top:12px;color:var(--brick);font-weight:700;display:none;}
+  .flashcard.flipped .de{display:block;}
+  .flashcard .hint{font-size:0.75rem;opacity:0.5;margin-top:14px;}
+  .flash-actions{display:flex;gap:12px;}
+  .btn-know, .btn-again{
+    border:none;border-radius:12px;padding:12px 20px;font-weight:800;font-size:0.95rem;cursor:pointer;
+    font-family:'Baloo 2',sans-serif;
+  }
+  .btn-know{background:var(--patina);color:#fff;}
+  .btn-again{background:var(--brick);color:#fff;}
+
+  /* Multiple Choice */
+  .mc-prompt{text-align:center;margin-bottom:20px;}
+  .mc-prompt .word{font-family:'Cinzel',serif;font-size:1.8rem;font-weight:700;}
+  .mc-prompt .dir{font-size:0.78rem;opacity:0.6;font-family:'JetBrains Mono',monospace;}
+  .mc-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media (max-width:480px){.mc-grid{grid-template-columns:1fr;}}
+  .mc-opt{
+    background:#fff8e6;border:2px solid #7a6636;border-radius:12px;padding:14px;
+    font-weight:700;font-size:1rem;cursor:pointer;text-align:center;
+    transition:transform .1s ease;
+  }
+  .mc-opt:hover{transform:translateY(-2px);}
+  .mc-opt.correct{background:var(--patina-light);border-color:var(--patina);color:#fff;}
+  .mc-opt.wrong{background:var(--brick-light);border-color:var(--brick);color:#fff;}
+
+  /* Typing */
+  .type-prompt{text-align:center;margin-bottom:18px;}
+  .type-prompt .word{font-size:1.3rem;font-weight:700;}
+  .type-prompt .instr{font-size:0.78rem;opacity:0.6;font-family:'JetBrains Mono',monospace;}
+  .type-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  input[type=text]{
+    font-family:'Cinzel',serif;font-size:1.2rem;padding:10px 14px;border-radius:10px;
+    border:2px solid #7a6636;background:#fff8e6;color:var(--text-dark);width:220px;text-align:center;
+  }
+  .btn-check{background:var(--brick);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-weight:800;cursor:pointer;}
+  .feedback{text-align:center;margin-top:14px;font-weight:700;min-height:24px;}
+  .feedback.ok{color:var(--patina);}
+  .feedback.bad{color:var(--brick);}
+
+  /* Matching */
+  .match-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+  @media (max-width:480px){.match-grid{grid-template-columns:repeat(3,1fr);}}
+  .match-card{
+    background:#fff8e6;border:2px solid #7a6636;border-radius:10px;
+    min-height:64px;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:6px;font-weight:700;font-size:0.82rem;cursor:pointer;
+  }
+  .match-card.selected{border-color:var(--patina);box-shadow:0 0 0 2px var(--patina-light);}
+  .match-card.solved{background:var(--patina-light);color:#fff;opacity:0.7;cursor:default;}
+
+  /* Summary */
+  .summary{text-align:center;}
+  .summary .laurel{font-size:3rem;margin-bottom:6px;}
+  .summary h2{font-family:'Cinzel',serif;color:var(--brick);}
+  .summary .stat-row{display:flex;justify-content:center;gap:26px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-weight:700;}
+  .btn-continue{background:var(--gold);color:var(--text-dark);border:none;border-radius:12px;padding:12px 24px;font-weight:800;font-size:1rem;cursor:pointer;}
+
+  /* Modal */
+  .overlay{
+    position:fixed;inset:0;background:rgba(15,6,22,0.75);
+    display:none;align-items:center;justify-content:center;padding:16px;z-index:50;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:var(--parchment);color:var(--text-dark);border-radius:16px;
+    max-width:560px;width:100%;max-height:82vh;overflow-y:auto;padding:20px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.5);
+  }
+  .modal h3{font-family:'Cinzel',serif;margin-top:0;}
+  .lek-block{border:1px solid #b8a06a;border-radius:10px;padding:10px;margin-bottom:12px;}
+  .lek-block-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .lek-block-head input{width:140px;font-family:'Baloo 2',sans-serif;font-size:0.95rem;}
+  .word-row{display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap;}
+  .word-row input{flex:1;width:auto;font-family:'Baloo 2',sans-serif;font-size:0.85rem;padding:6px 8px;}
+  .small-btn{border:none;border-radius:8px;padding:6px 10px;cursor:pointer;font-weight:700;font-size:0.8rem;}
+  .small-btn.del{background:var(--brick);color:#fff;}
+  .small-btn.add{background:var(--patina);color:#fff;}
+  .modal-actions{display:flex;justify-content:space-between;margin-top:14px;gap:8px;flex-wrap:wrap;}
+  .close-x{position:absolute;top:10px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:var(--text-dark);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>VOKABEL-LEGION</h1>
+    <div class="subtitle">Cursus (Neu) · Trainingslager für Rekruten</div>
+  </header>
+
+  <div class="road-outer"><div class="road" id="road"></div></div>
+
+  <div class="statbar" id="statbar"></div>
+
+  <div class="controls">
+    <select id="lektionSelect"></select>
+    <div class="mode-tabs" id="modeTabs">
+      <button class="mode-tab" data-mode="flash">🎴 Karteikarten</button>
+      <button class="mode-tab" data-mode="mc">🛡️ Vier Wege</button>
+      <button class="mode-tab" data-mode="type">⚒️ Schmiede</button>
+      <button class="mode-tab" data-mode="match">🏺 Pärchen</button>
+    </div>
+    <button class="ghost-btn" id="manageBtn">📜 Vokabeln verwalten</button>
+    <button class="ghost-btn" id="customBtn">✍️ Eigene Vokabeln</button>
+  </div>
+
+  <main id="game"></main>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="modal" id="modal"></div>
+</div>
+
+<script>
+/* ============ Daten & Speicher ============ */
+const STORAGE_KEY = 'vokabellegion:data';
+
+const DEFAULT_LEKTION_1_WORDS = [
+  ['sol','die Sonne'],['ardere','(ver)brennen; entbrannt sein'],['silentium','die Ruhe, die Stille'],
+  ['esse','sein'],['villa','das Landhaus, das Landgut'],['iacere','(da)liegen'],
+  ['etiam','auch, sogar'],['canis','der Hund'],['tacere','schweigen, still sein'],
+  ['asinus','der Esel'],['non iam','nicht mehr'],['clamare','schreien, rufen'],
+  ['stare','(da)stehen'],['et','und, auch'],['exspectare','warten (auf), erwarten'],
+  ['ubi','wo?'],['cur','warum?'],['amica','die Freundin'],['non','nicht'],
+  ['venire','kommen'],['cessare','zögern, sich Zeit lassen'],['placere','gefallen, Spaß machen'],
+  ['subito','plötzlich'],['ecce','schau!, seht!'],['quis','wer?']
+];
+
+function makeDefaultData(){
+  return {
+    lektionen: {
+      "1": {
+        nummer: 1,
+        name: "Lektion 1",
+        woerter: DEFAULT_LEKTION_1_WORDS.map((w,i)=>({id:'l1w'+i, la:w[0], de:w[1], mastery:0}))
+      }
+    },
+    eigene: { words: [], currentBatch: 1 },
+    stats: { xp:0, denarii:0, streak:0, bestStreak:0 }
+  };
+}
+
+let DATA = null;
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if(raw){ DATA = JSON.parse(raw); }
+  }catch(e){ console.error('Konnte gespeicherte Daten nicht lesen', e); }
+  if(!DATA){ DATA = makeDefaultData(); }
+  if(!DATA.eigene){ DATA.eigene = { words: [], currentBatch: 1 }; }
+  saveData();
+}
+function saveData(){
+  try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(DATA)); }
+  catch(e){ console.error('Speichern fehlgeschlagen', e); }
+}
+function checkStorageHealth(){
+  try{
+    localStorage.setItem('__vl_test__','1');
+    localStorage.removeItem('__vl_test__');
+  }catch(e){
+    const sub = document.querySelector('.subtitle');
+    if(sub){
+      sub.insertAdjacentHTML('afterend',
+        `<div style="background:var(--brick);color:#fff;border-radius:8px;padding:8px 12px;margin-top:10px;font-size:0.8rem;">
+          ⚠️ Dein Browser blockiert lokales Speichern (z. B. privater Modus). Der Fortschritt bleibt nur bis zum Schließen dieser Seite erhalten.
+        </div>`);
+    }
+  }
+}
+
+/* ============ Ränge ============ */
+const RANKS = [
+  {min:0,   icon:'🥉', name:'TIRO',      sub:'Rekrut'},
+  {min:80,  icon:'🛡️', name:'MILES',     sub:'Soldat'},
+  {min:220, icon:'⚔️', name:'OPTIO',     sub:'Unteroffizier'},
+  {min:450, icon:'🏛️', name:'CENTURIO',  sub:'Hauptmann'},
+  {min:800, icon:'🦅', name:'LEGATUS',   sub:'Legionskommandant'},
+  {min:1300,icon:'👑', name:'IMPERATOR', sub:'Oberbefehlshaber'},
+];
+function rankFor(xp){
+  let r = RANKS[0];
+  for(const rk of RANKS){ if(xp>=rk.min) r=rk; }
+  return r;
+}
+function nextRankInfo(xp){
+  const idx = RANKS.findIndex(r=>r===rankFor(xp));
+  if(idx===RANKS.length-1) return {pct:100, next:null};
+  const cur=RANKS[idx], nxt=RANKS[idx+1];
+  const pct = Math.min(100, Math.round(((xp-cur.min)/(nxt.min-cur.min))*100));
+  return {pct, next:nxt};
+}
+
+/* ============ App-Status ============ */
+let currentMode = 'flash';
+let currentLektionKey = null; // '1', '2', ... or 'ALL'
+let session = null; // aktuelle Übungsrunde
+
+function allLektionKeysSorted(){
+  return Object.keys(DATA.lektionen).sort((a,b)=>DATA.lektionen[a].nummer-DATA.lektionen[b].nummer);
+}
+function latestCustomBatch(){
+  if(!DATA.eigene.words.length) return DATA.eigene.currentBatch;
+  return Math.max(...DATA.eigene.words.map(w=>w.batch||1));
+}
+function wordsForKey(key){
+  if(key==='ALL'){
+    return allLektionKeysSorted().flatMap(k=>DATA.lektionen[k].woerter);
+  }
+  if(key==='CUSTOM_ALL'){
+    return DATA.eigene.words;
+  }
+  if(key==='CUSTOM_LATEST'){
+    const b = latestCustomBatch();
+    return DATA.eigene.words.filter(w=>(w.batch||1)===b);
+  }
+  return DATA.lektionen[key] ? DATA.lektionen[key].woerter : [];
+}
+function currentScopeLabel(){
+  if(currentLektionKey==='ALL') return 'Alle bisherigen Lektionen';
+  if(currentLektionKey==='CUSTOM_ALL') return '✍️ Eigene Vokabeln (alle)';
+  if(currentLektionKey==='CUSTOM_LATEST') return '✍️ Eigene Vokabeln (neueste Liste)';
+  return DATA.lektionen[currentLektionKey] ? DATA.lektionen[currentLektionKey].name : '';
+}
+function lektionAvgMastery(key){
+  const ws = wordsForKey(key);
+  if(!ws.length) return 0;
+  return ws.reduce((s,w)=>s+(w.mastery||0),0)/ws.length;
+}
+
+/* ============ Rendering: Straße ============ */
+function renderRoad(){
+  const road = document.getElementById('road');
+  const keys = allLektionKeysSorted();
+  road.innerHTML = keys.map(k=>{
+    const lek = DATA.lektionen[k];
+    const done = lektionAvgMastery(k) >= 4;
+    const active = k === currentLektionKey;
+    return `<button class="milestone ${done?'done':''} ${active?'active':''}" data-lek="${k}">
+      <div class="stone">${done?'♛':lek.nummer}</div>
+      <div class="lbl">L${lek.nummer}</div>
+    </button>`;
+  }).join('') + `<button class="milestone ${currentLektionKey==='ALL'?'active':''}" data-lek="ALL">
+      <div class="stone">∞</div><div class="lbl">Alle</div>
+    </button>`;
+  road.querySelectorAll('.milestone').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      currentLektionKey = btn.dataset.lek;
+      document.getElementById('lektionSelect').value = currentLektionKey;
+      renderRoad();
+      startSession();
+    });
+  });
+}
+
+/* ============ Rendering: Statusleiste ============ */
+function renderStatbar(){
+  const bar = document.getElementById('statbar');
+  const {xp, denarii, streak, bestStreak} = DATA.stats;
+  const rk = rankFor(xp);
+  const {pct} = nextRankInfo(xp);
+  bar.innerHTML = `
+    <div class="rank-block">
+      <div class="rank-badge">${rk.icon}</div>
+      <div>
+        <div class="rank-name">${rk.name}</div>
+        <div class="rank-sub">${rk.sub}</div>
+      </div>
+    </div>
+    <div class="xp-track"><div class="xp-fill" style="width:${pct}%"></div></div>
+    <div class="coin-streak">
+      <span>🪙 ${denarii}</span>
+      <span>🔥 ${streak}${bestStreak>streak?(' <span style="opacity:.5">(Bestwert '+bestStreak+')</span>'):''}</span>
+    </div>
+  `;
+}
+
+/* ============ Lektion-Auswahl (Dropdown) ============ */
+function renderLektionSelect(){
+  const sel = document.getElementById('lektionSelect');
+  const keys = allLektionKeysSorted();
+  const specialKeys = ['ALL','CUSTOM_LATEST','CUSTOM_ALL'];
+  sel.innerHTML = keys.map(k=>`<option value="${k}">${DATA.lektionen[k].name}</option>`).join('')
+    + `<option value="ALL">🏛️ Alle bisherigen Lektionen</option>`
+    + `<option value="CUSTOM_LATEST">✍️ Eigene Vokabeln – neueste Liste</option>`
+    + `<option value="CUSTOM_ALL">✍️ Eigene Vokabeln – alle</option>`;
+  if(!currentLektionKey || !(keys.includes(currentLektionKey) || specialKeys.includes(currentLektionKey))){
+    currentLektionKey = keys[keys.length-1] || null;
+  }
+  sel.value = currentLektionKey;
+  sel.onchange = ()=>{ currentLektionKey = sel.value; renderRoad(); startSession(); };
+}
+
+/* ============ Mode-Tabs ============ */
+function renderModeTabs(){
+  document.querySelectorAll('.mode-tab').forEach(btn=>{
+    btn.classList.toggle('active', btn.dataset.mode===currentMode);
+    btn.onclick = ()=>{ currentMode = btn.dataset.mode; renderModeTabs(); startSession(); };
+  });
+}
+
+/* ============ Fragen-Auswahl (leichtes SRS) ============ */
+function pickQuestionWords(count){
+  const pool = wordsForKey(currentLektionKey).slice();
+  if(pool.length===0) return [];
+  // Gewichtung: niedrigere mastery -> höhere Chance
+  const weighted = [];
+  pool.forEach(w=>{
+    const weight = 6 - Math.min(5, w.mastery||0);
+    for(let i=0;i<weight;i++) weighted.push(w);
+  });
+  const chosen = [];
+  const usedIds = new Set();
+  let attempts=0;
+  while(chosen.length < Math.min(count, pool.length) && attempts < 500){
+    attempts++;
+    const w = weighted[Math.floor(Math.random()*weighted.length)];
+    if(!usedIds.has(w.id)){ usedIds.add(w.id); chosen.push(w); }
+  }
+  return chosen;
+}
+
+function applyAnswer(word, isCorrect){
+  word.mastery = Math.max(0, Math.min(5, (word.mastery||0) + (isCorrect?1:-1)));
+  if(isCorrect){
+    DATA.stats.xp += 10;
+    DATA.stats.denarii += 2;
+    DATA.stats.streak += 1;
+    if(DATA.stats.streak % 5 === 0) DATA.stats.denarii += 10;
+    DATA.stats.bestStreak = Math.max(DATA.stats.bestStreak, DATA.stats.streak);
+  } else {
+    DATA.stats.streak = 0;
+  }
+  saveData();
+  renderStatbar();
+  renderRoad();
+}
+
+/* ============ Spiel starten ============ */
+function startSession(){
+  const words = wordsForKey(currentLektionKey);
+  const game = document.getElementById('game');
+  if(!currentLektionKey || words.length===0){
+    const isCustom = currentLektionKey==='CUSTOM_ALL' || currentLektionKey==='CUSTOM_LATEST';
+    game.innerHTML = `<div class="empty-state">
+      <h2>Noch keine Vokabeln hier</h2>
+      <p>${isCustom
+          ? 'Klicke auf „✍️ Eigene Vokabeln“, um deine eigene Liste einzutragen.'
+          : 'Klicke auf „📜 Vokabeln verwalten“, um eine Lektion mit Wörtern anzulegen.'}</p>
+    </div>`;
+    return;
+  }
+  session = { correct:0, wrong:0, total:0, queue: pickQuestionWords(10), index:0 };
+  if(session.queue.length===0){
+    game.innerHTML = `<div class="empty-state"><h2>Zu wenige Vokabeln</h2></div>`;
+    return;
+  }
+  renderQuestion();
+}
+
+function renderQuestion(){
+  if(!session || session.index >= session.queue.length){ return renderSummary(); }
+  const word = session.queue[session.index];
+  if(currentMode==='flash') return renderFlash(word);
+  if(currentMode==='mc') return renderMC(word);
+  if(currentMode==='type') return renderType(word);
+  if(currentMode==='match') return renderMatch();
+}
+
+function progressLabel(){
+  return `<div class="progress-row"><span>Frage ${Math.min(session.index+1, session.queue.length)} / ${session.queue.length}</span><span>${currentScopeLabel()}</span></div>`;
+}
+
+/* ---- Karteikarten ---- */
+function renderFlash(word){
+  const game = document.getElementById('game');
+  game.innerHTML = progressLabel() + `
+    <div class="flash-stage">
+      <div class="flashcard" id="fcard">
+        <div class="la">${word.la}</div>
+        <div class="de">${word.de}</div>
+        <div class="hint">Tippen zum Umdrehen</div>
+      </div>
+      <div class="flash-actions" id="fActions" style="display:none;">
+        <button class="btn-again">🔁 Nochmal üben</button>
+        <button class="btn-know">✅ Weiß ich!</button>
+      </div>
+    </div>
+  `;
+  const card = document.getElementById('fcard');
+  const actions = document.getElementById('fActions');
+  card.onclick = ()=>{ card.classList.add('flipped'); actions.style.display='flex'; };
+  actions.querySelector('.btn-know').onclick = ()=>{ applyAnswer(word,true); nextQuestion(); };
+  actions.querySelector('.btn-again').onclick = ()=>{ applyAnswer(word,false); nextQuestion(); };
+}
+
+/* ---- Vier Wege (Multiple Choice) ---- */
+function renderMC(word){
+  const game = document.getElementById('game');
+  const latinToGerman = Math.random() < 0.5;
+  const pool = wordsForKey(currentLektionKey).filter(w=>w.id!==word.id);
+  const distractors = shuffle(pool).slice(0,3);
+  const options = shuffle([word, ...distractors]);
+  game.innerHTML = progressLabel() + `
+    <div class="mc-prompt">
+      <div class="dir">${latinToGerman?'Was bedeutet dieses Wort?':'Wie heißt das auf Latein?'}</div>
+      <div class="word">${latinToGerman ? word.la : firstGloss(word.de)}</div>
+    </div>
+    <div class="mc-grid" id="mcGrid"></div>
+  `;
+  const grid = document.getElementById('mcGrid');
+  grid.innerHTML = options.map((o,i)=>`<button class="mc-opt" data-id="${o.id}">${latinToGerman ? firstGloss(o.de) : o.la}</button>`).join('');
+  let answered=false;
+  grid.querySelectorAll('.mc-opt').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(answered) return;
+      answered = true;
+      const isCorrect = btn.dataset.id === word.id;
+      btn.classList.add(isCorrect?'correct':'wrong');
+      if(!isCorrect){
+        grid.querySelector(`[data-id="${word.id}"]`).classList.add('correct');
+      }
+      applyAnswer(word, isCorrect);
+      setTimeout(nextQuestion, 850);
+    };
+  });
+}
+function firstGloss(de){ return de.split(/[,;]/)[0].trim(); }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function formatDate(ts){
+  if(!ts) return '–';
+  const d = new Date(ts);
+  return d.toLocaleDateString('de-DE', {day:'2-digit', month:'2-digit', year:'2-digit'});
+}
+
+/* ---- Schmiede (Tippen: Deutsch -> Latein) ---- */
+function renderType(word){
+  const game = document.getElementById('game');
+  game.innerHTML = progressLabel() + `
+    <div class="type-prompt">
+      <div class="instr">Wie heißt das lateinische Wort für:</div>
+      <div class="word">${firstGloss(word.de)}</div>
+    </div>
+    <div class="type-row">
+      <input type="text" id="typeInput" autocomplete="off" placeholder="Latein …">
+      <button class="btn-check" id="checkBtn">Prüfen</button>
+    </div>
+    <div class="feedback" id="typeFeedback"></div>
+  `;
+  const input = document.getElementById('typeInput');
+  const fb = document.getElementById('typeFeedback');
+  let answered=false;
+  function check(){
+    if(answered) return;
+    answered=true;
+    const norm = s => s.toLowerCase().trim().replace(/[āăâ]/g,'a').replace(/[ēĕê]/g,'e').replace(/[īĭî]/g,'i').replace(/[ōŏô]/g,'o').replace(/[ūŭû]/g,'u');
+    const isCorrect = norm(input.value) === norm(word.la);
+    fb.className = 'feedback ' + (isCorrect?'ok':'bad');
+    fb.textContent = isCorrect ? '✅ Richtig!' : `❌ Richtig wäre: ${word.la}`;
+    applyAnswer(word, isCorrect);
+    setTimeout(nextQuestion, isCorrect?700:1400);
+  }
+  document.getElementById('checkBtn').onclick = check;
+  input.onkeydown = (e)=>{ if(e.key==='Enter') check(); };
+  input.focus();
+}
+
+/* ---- Pärchen (Memory) ---- */
+function renderMatch(){
+  const game = document.getElementById('game');
+  const pool = shuffle(wordsForKey(currentLektionKey)).slice(0, Math.min(6, wordsForKey(currentLektionKey).length));
+  const cards = shuffle(pool.flatMap(w=>[
+    {key:w.id, side:'la', text:w.la},
+    {key:w.id, side:'de', text:firstGloss(w.de)}
+  ]));
+  game.innerHTML = `<div class="progress-row"><span>Finde alle Paare</span><span>${currentScopeLabel()}</span></div>
+    <div class="match-grid" id="matchGrid"></div>`;
+  const grid = document.getElementById('matchGrid');
+  grid.innerHTML = cards.map((c,i)=>`<button class="match-card" data-idx="${i}" data-key="${c.key}">${c.text}</button>`).join('');
+  let firstPick=null, solvedCount=0, lock=false;
+  grid.querySelectorAll('.match-card').forEach(btn=>{
+    btn.onclick = ()=>{
+      if(lock || btn.classList.contains('solved') || btn===firstPick) return;
+      btn.classList.add('selected');
+      if(!firstPick){ firstPick = btn; return; }
+      lock = true;
+      const match = firstPick.dataset.key === btn.dataset.key;
+      setTimeout(()=>{
+        if(match){
+          firstPick.classList.add('solved'); btn.classList.add('solved');
+          firstPick.classList.remove('selected'); btn.classList.remove('selected');
+          const w = pool.find(p=>p.id===btn.dataset.key);
+          applyAnswer(w, true);
+          solvedCount++;
+          if(solvedCount === pool.length){ session.index = session.queue.length; setTimeout(renderSummary, 500); }
+        } else {
+          firstPick.classList.remove('selected'); btn.classList.remove('selected');
+        }
+        firstPick=null; lock=false;
+      }, match?400:550);
+    };
+  });
+}
+
+function nextQuestion(){
+  session.index++;
+  renderQuestion();
+}
+
+/* ---- Zusammenfassung ---- */
+function renderSummary(){
+  const game = document.getElementById('game');
+  game.innerHTML = `
+    <div class="summary">
+      <div class="laurel">🏆</div>
+      <h2>Runde geschafft!</h2>
+      <div class="stat-row">
+        <span>🪙 +${DATA.stats.denarii}</span>
+        <span>🔥 Serie: ${DATA.stats.streak}</span>
+      </div>
+      <button class="btn-continue" id="againBtn">Neue Runde</button>
+    </div>
+  `;
+  document.getElementById('againBtn').onclick = startSession;
+}
+
+/* ============ Verwalten (Modal) ============ */
+function openManage(){
+  renderManageModal();
+  document.getElementById('overlay').classList.add('show');
+}
+function closeManage(){ document.getElementById('overlay').classList.remove('show'); }
+
+function renderManageModal(){
+  const modal = document.getElementById('modal');
+  const keys = allLektionKeysSorted();
+  modal.innerHTML = `
+    <button class="close-x" id="closeX">✕</button>
+    <h3>📜 Vokabeln verwalten</h3>
+    <div id="lekBlocks"></div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="addLekBtn">+ Neue Lektion anlegen</button>
+    </div>
+  `;
+  const blocks = document.getElementById('lekBlocks');
+  blocks.innerHTML = keys.map(k=>{
+    const lek = DATA.lektionen[k];
+    return `<div class="lek-block" data-key="${k}">
+      <div class="lek-block-head">
+        <input type="text" value="${lek.name}" data-role="lekname" />
+        <div>
+          <button class="small-btn add" data-role="addword">+ Wort</button>
+          <button class="small-btn del" data-role="dellek">Lektion löschen</button>
+        </div>
+      </div>
+      <div data-role="wordlist">
+        ${lek.woerter.map(w=>`
+          <div class="word-row" data-wid="${w.id}">
+            <input type="text" value="${w.la}" data-role="la" placeholder="Latein">
+            <input type="text" value="${w.de}" data-role="de" placeholder="Deutsch">
+            <button class="small-btn del" data-role="delword">✕</button>
+          </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('') || `<p>Noch keine Lektionen. Lege oben eine neue an.</p>`;
+
+  modal.dataset.mode = 'lektion';
+  document.getElementById('closeX').onclick = ()=>{ persistFromModal(); closeManage(); };
+  document.getElementById('addLekBtn').onclick = ()=>{
+    persistFromModal();
+    const nextNum = Math.max(0, ...allLektionKeysSorted().map(k=>DATA.lektionen[k].nummer)) + 1;
+    DATA.lektionen[String(nextNum)] = { nummer: nextNum, name: 'Lektion '+nextNum, woerter: [] };
+    saveData();
+    renderManageModal();
+  };
+
+  blocks.querySelectorAll('[data-role="addword"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.closest('.lek-block').dataset.key;
+      persistFromModal();
+      DATA.lektionen[key].woerter.push({id:'w'+Date.now()+Math.floor(Math.random()*999), la:'', de:'', mastery:0});
+      saveData();
+      renderManageModal();
+    };
+  });
+  blocks.querySelectorAll('[data-role="dellek"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const key = btn.closest('.lek-block').dataset.key;
+      if(!confirm('Diese Lektion inklusive aller Vokabeln wirklich löschen?')) return;
+      persistFromModal();
+      delete DATA.lektionen[key];
+      saveData();
+      renderManageModal();
+      renderLektionSelect(); renderRoad(); startSession();
+    };
+  });
+  blocks.querySelectorAll('[data-role="delword"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const row = btn.closest('.word-row');
+      const key = row.closest('.lek-block').dataset.key;
+      persistFromModal();
+      DATA.lektionen[key].woerter = DATA.lektionen[key].woerter.filter(w=>w.id!==row.dataset.wid);
+      saveData();
+      renderManageModal();
+    };
+  });
+}
+
+function persistFromModal(){
+  const blocks = document.querySelectorAll('#lekBlocks .lek-block');
+  blocks.forEach(block=>{
+    const key = block.dataset.key;
+    const lek = DATA.lektionen[key];
+    if(!lek) return;
+    lek.name = block.querySelector('[data-role="lekname"]').value || lek.name;
+    block.querySelectorAll('.word-row').forEach(row=>{
+      const w = lek.woerter.find(w=>w.id===row.dataset.wid);
+      if(w){
+        w.la = row.querySelector('[data-role="la"]').value.trim();
+        w.de = row.querySelector('[data-role="de"]').value.trim();
+      }
+    });
+  });
+  saveData();
+  renderLektionSelect(); renderRoad();
+}
+
+/* ============ Eigene Vokabeln (Modal) ============ */
+let editBatch = null;
+
+function existingBatches(){
+  const fromWords = DATA.eigene.words.map(w=>w.batch||1);
+  const set = new Set([...fromWords, DATA.eigene.currentBatch]);
+  return Array.from(set).sort((a,b)=>a-b);
+}
+
+function openCustomManage(){
+  editBatch = DATA.eigene.currentBatch;
+  renderCustomModal();
+  document.getElementById('overlay').classList.add('show');
+}
+
+function renderCustomModal(){
+  const modal = document.getElementById('modal');
+  const latestBatch = latestCustomBatch();
+  const batches = existingBatches();
+  if(!batches.includes(editBatch)) editBatch = DATA.eigene.currentBatch;
+  const words = DATA.eigene.words.filter(w=>(w.batch||1)===editBatch)
+    .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+
+  modal.innerHTML = `
+    <button class="close-x" id="closeXCustom">✕</button>
+    <h3>✍️ Eigene Vokabeln</h3>
+    <p style="font-size:0.85rem;opacity:0.75;margin-top:-6px;">
+      Trage hier eigene Wörter ein, z. B. die Hausaufgaben-Vokabeln der Woche.
+      Wähle unten aus, in welche Liste neue Wörter einsortiert werden, oder beginne eine ganz neue.
+    </p>
+    <div style="background:rgba(79,124,108,0.15);border:1px solid var(--patina);border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:0.82rem;">
+      💾 Falls die App mal aktualisiert wird, geht sonst der ganze Fortschritt verloren.
+      Lade dir am besten ab und zu eine <strong>Sicherung</strong> herunter (unten) und spiele sie in der neuen Version wieder ein.
+    </div>
+    <div class="lek-block-head" style="margin-bottom:10px;flex-wrap:wrap;">
+      <select id="batchSelect"></select>
+      <button class="small-btn add" id="newBatchBtn">🆕 Neue Liste beginnen</button>
+    </div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:0.78rem;opacity:0.7;margin-bottom:10px;">
+      Insgesamt ${DATA.eigene.words.length} Wörter in ${batches.length} Liste${batches.length===1?'':'n'}
+    </div>
+    <div class="word-row">
+      <input type="text" id="newLa" placeholder="Latein">
+      <input type="text" id="newDe" placeholder="Deutsch">
+      <button class="small-btn add" id="addCustomWordBtn">+ Hinzufügen</button>
+    </div>
+    <div id="customWordList" style="margin-top:14px;"></div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="exportBtn">⬇️ Sicherung herunterladen</button>
+      <button class="ghost-btn" id="importBtn">⬆️ Sicherung einspielen</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none;">
+    </div>
+    <div class="modal-actions">
+      <button class="ghost-btn" id="doneCustomBtn">Fertig</button>
+    </div>
+  `;
+
+  const sel = document.getElementById('batchSelect');
+  sel.innerHTML = batches.map(b=>{
+    const count = DATA.eigene.words.filter(w=>(w.batch||1)===b).length;
+    const tag = b===latestBatch ? ' – neueste' : '';
+    return `<option value="${b}" ${b===editBatch?'selected':''}>Liste ${b} (${count} Wörter)${tag}</option>`;
+  }).join('');
+  sel.onchange = ()=>{
+    editBatch = parseInt(sel.value, 10);
+    DATA.eigene.currentBatch = editBatch;
+    saveData();
+    renderCustomModal();
+  };
+
+  const list = document.getElementById('customWordList');
+  list.innerHTML = words.map(w=>`
+    <div class="word-row" data-wid="${w.id}">
+      <input type="text" value="${w.la}" data-role="la" placeholder="Latein">
+      <input type="text" value="${w.de}" data-role="de" placeholder="Deutsch">
+      <span style="align-self:center;font-size:0.7rem;opacity:0.6;font-family:'JetBrains Mono',monospace;white-space:nowrap;">${formatDate(w.createdAt)}</span>
+      <button class="small-btn del" data-role="delcustomword">✕</button>
+    </div>`).join('') || `<p style="opacity:0.7;">Diese Liste ist noch leer. Trage oben ein Wort ein.</p>`;
+
+  function addWord(){
+    const la = document.getElementById('newLa').value.trim();
+    const de = document.getElementById('newDe').value.trim();
+    if(!la || !de) return;
+    DATA.eigene.words.push({id:'c'+Date.now()+Math.floor(Math.random()*999), la, de, mastery:0, batch: editBatch, createdAt: Date.now()});
+    saveData();
+    renderCustomModal();
+    renderLektionSelect(); renderRoad();
+    document.getElementById('newLa').focus();
+  }
+  document.getElementById('addCustomWordBtn').onclick = addWord;
+  document.getElementById('newDe').onkeydown = (e)=>{ if(e.key==='Enter') addWord(); };
+  document.getElementById('newLa').onkeydown = (e)=>{ if(e.key==='Enter') document.getElementById('newDe').focus(); };
+
+  document.getElementById('newBatchBtn').onclick = ()=>{
+    const newBatch = Math.max(...existingBatches()) + 1;
+    editBatch = newBatch;
+    DATA.eigene.currentBatch = newBatch;
+    saveData();
+    renderCustomModal();
+  };
+
+  list.querySelectorAll('[data-role="delcustomword"]').forEach(btn=>{
+    btn.onclick = ()=>{
+      const row = btn.closest('.word-row');
+      DATA.eigene.words = DATA.eigene.words.filter(w=>w.id!==row.dataset.wid);
+      saveData();
+      renderCustomModal();
+      renderLektionSelect(); renderRoad();
+    };
+  });
+
+  function persistCustomEdits(){
+    document.querySelectorAll('#customWordList .word-row').forEach(row=>{
+      const w = DATA.eigene.words.find(w=>w.id===row.dataset.wid);
+      if(w){
+        w.la = row.querySelector('[data-role="la"]').value.trim();
+        w.de = row.querySelector('[data-role="de"]').value.trim();
+      }
+    });
+    saveData();
+  }
+
+  document.getElementById('closeXCustom').onclick = ()=>{ persistCustomEdits(); closeManage(); };
+  document.getElementById('doneCustomBtn').onclick = ()=>{ persistCustomEdits(); closeManage(); };
+  document.getElementById('exportBtn').onclick = exportBackup;
+  document.getElementById('importBtn').onclick = ()=> document.getElementById('importFile').click();
+  document.getElementById('importFile').onchange = (e)=>{
+    if(e.target.files[0]) importBackup(e.target.files[0]);
+    e.target.value = '';
+  };
+  modal.dataset.mode = 'custom';
+}
+
+/* ============ Sicherung: Export & Import ============ */
+function exportBackup(){
+  const exportCopy = JSON.parse(JSON.stringify(DATA));
+  if(exportCopy.eigene && exportCopy.eigene.words){
+    exportCopy.eigene.words = exportCopy.eigene.words.map(w=>({
+      ...w,
+      hinzugefuegt_am: w.createdAt ? new Date(w.createdAt).toISOString().slice(0,10) : null
+    }));
+  }
+  const blob = new Blob([JSON.stringify(exportCopy, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const datum = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `vokabel-legion-sicherung-${datum}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importBackup(file){
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    let imported;
+    try{ imported = JSON.parse(e.target.result); }
+    catch(err){ alert('Diese Datei ist keine gültige Sicherung.'); return; }
+    if(!imported || typeof imported !== 'object' || !imported.eigene){
+      alert('Diese Datei ist keine gültige Vokabel-Legion-Sicherung.');
+      return;
+    }
+    const replace = confirm(
+      'Sicherung einspielen:\n\n' +
+      'OK = kompletten aktuellen Stand durch die Sicherung ERSETZEN\n' +
+      'Abbrechen = nur die eigenen Vokabeln ZUSAMMENFÜHREN (nichts wird gelöscht)'
+    );
+    if(replace){
+      DATA = imported;
+      if(!DATA.eigene) DATA.eigene = { words: [], currentBatch: 1 };
+      if(!DATA.lektionen) DATA.lektionen = {};
+      if(!DATA.stats) DATA.stats = { xp:0, denarii:0, streak:0, bestStreak:0 };
+    } else {
+      const existingPairs = new Set(DATA.eigene.words.map(w=>(w.la||'').toLowerCase()+'|'+(w.de||'').toLowerCase()));
+      const importedWords = imported.eigene.words || [];
+      let added = 0;
+      importedWords.forEach(w=>{
+        const key = (w.la||'').toLowerCase()+'|'+(w.de||'').toLowerCase();
+        if(!existingPairs.has(key) && w.la && w.de){
+          DATA.eigene.words.push({id:'imp'+Date.now()+Math.floor(Math.random()*999), la:w.la, de:w.de, mastery:0, batch: DATA.eigene.currentBatch, createdAt: w.createdAt || Date.now()});
+          existingPairs.add(key);
+          added++;
+        }
+      });
+      alert(added + ' neue Vokabel(n) übernommen.');
+    }
+    saveData();
+    editBatch = DATA.eigene.currentBatch;
+    renderLektionSelect(); renderRoad(); renderStatbar();
+    renderCustomModal();
+  };
+  reader.readAsText(file);
+}
+
+/* ============ Start ============ */
+async function init(){
+  loadData();
+  checkStorageHealth();
+  renderLektionSelect();
+  renderRoad();
+  renderStatbar();
+  renderModeTabs();
+  startSession();
+
+  document.getElementById('manageBtn').onclick = openManage;
+  document.getElementById('customBtn').onclick = openCustomManage;
+  document.getElementById('overlay').onclick = (e)=>{
+    if(e.target.id==='overlay'){
+      const modal = document.getElementById('modal');
+      if(modal.dataset.mode==='custom'){
+        document.querySelectorAll('#customWordList .word-row').forEach(row=>{
+          const w = DATA.eigene.words.find(w=>w.id===row.dataset.wid);
+          if(w){
+            w.la = row.querySelector('[data-role="la"]').value.trim();
+            w.de = row.querySelector('[data-role="de"]').value.trim();
+          }
+        });
+        saveData();
+      } else {
+        persistFromModal();
+      }
+      closeManage();
+    }
+  };
+}
+init();
+</script>
+</body>
+</html>
